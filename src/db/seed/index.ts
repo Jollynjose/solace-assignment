@@ -1,4 +1,7 @@
-const specialties = [
+import { db } from '@/lib';
+import { advocates, advocatesToSpecialities, specialties } from '../schema';
+
+const specialtiesSeed = [
   'Bipolar',
   'LGBTQ',
   'Medication/Prescribing',
@@ -27,20 +30,12 @@ const specialties = [
   'Domestic abuse',
 ];
 
-const randomSpecialty = () => {
-  const random1 = Math.floor(Math.random() * 24);
-  const random2 = Math.floor(Math.random() * (24 - random1)) + random1 + 1;
-
-  return [random1, random2];
-};
-
-const advocateData = [
+const advocateDataSeed = [
   {
     firstName: 'John',
     lastName: 'Doe',
     city: 'New York',
     degree: 'MD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 10,
     phoneNumber: 5551234567,
   },
@@ -49,7 +44,6 @@ const advocateData = [
     lastName: 'Smith',
     city: 'Los Angeles',
     degree: 'PhD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 8,
     phoneNumber: 5559876543,
   },
@@ -58,7 +52,6 @@ const advocateData = [
     lastName: 'Johnson',
     city: 'Chicago',
     degree: 'MSW',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 5,
     phoneNumber: 5554567890,
   },
@@ -67,7 +60,6 @@ const advocateData = [
     lastName: 'Brown',
     city: 'Houston',
     degree: 'MD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 12,
     phoneNumber: 5556543210,
   },
@@ -76,7 +68,6 @@ const advocateData = [
     lastName: 'Davis',
     city: 'Phoenix',
     degree: 'PhD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 7,
     phoneNumber: 5553210987,
   },
@@ -85,7 +76,6 @@ const advocateData = [
     lastName: 'Martinez',
     city: 'Philadelphia',
     degree: 'MSW',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 9,
     phoneNumber: 5557890123,
   },
@@ -94,7 +84,6 @@ const advocateData = [
     lastName: 'Taylor',
     city: 'San Antonio',
     degree: 'MD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 11,
     phoneNumber: 5554561234,
   },
@@ -103,7 +92,6 @@ const advocateData = [
     lastName: 'Harris',
     city: 'San Diego',
     degree: 'PhD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 6,
     phoneNumber: 5557896543,
   },
@@ -112,7 +100,6 @@ const advocateData = [
     lastName: 'Clark',
     city: 'Dallas',
     degree: 'MSW',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 4,
     phoneNumber: 5550123456,
   },
@@ -121,7 +108,6 @@ const advocateData = [
     lastName: 'Lewis',
     city: 'San Jose',
     degree: 'MD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 13,
     phoneNumber: 5553217654,
   },
@@ -130,7 +116,6 @@ const advocateData = [
     lastName: 'Lee',
     city: 'Austin',
     degree: 'PhD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 10,
     phoneNumber: 5551238765,
   },
@@ -139,7 +124,6 @@ const advocateData = [
     lastName: 'King',
     city: 'Jacksonville',
     degree: 'MSW',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 5,
     phoneNumber: 5556540987,
   },
@@ -148,7 +132,6 @@ const advocateData = [
     lastName: 'Green',
     city: 'San Francisco',
     degree: 'MD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 14,
     phoneNumber: 5559873456,
   },
@@ -157,7 +140,6 @@ const advocateData = [
     lastName: 'Walker',
     city: 'Columbus',
     degree: 'PhD',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 9,
     phoneNumber: 5556781234,
   },
@@ -166,10 +148,56 @@ const advocateData = [
     lastName: 'Hall',
     city: 'Fort Worth',
     degree: 'MSW',
-    specialties: specialties.slice(...randomSpecialty()),
     yearsOfExperience: 3,
     phoneNumber: 5559872345,
   },
 ];
 
-export { advocateData };
+const getRandomSpecialties = (
+  allSpecialties: Array<Omit<typeof specialties.$inferSelect, 'name'>>,
+) => {
+  const random1 = Math.floor(Math.random() * allSpecialties.length);
+  const random2 =
+    Math.floor(Math.random() * (allSpecialties.length - random1)) + random1 + 1;
+
+  return allSpecialties.slice(random1, random2);
+};
+
+async function main() {
+  const specialityInserts: Array<typeof specialties.$inferInsert> =
+    specialtiesSeed.map((specialty) => ({ name: specialty }));
+
+  const specialitiesInserted = await db
+    .insert(specialties)
+    .values(specialityInserts)
+    .returning({
+      id: specialties.id,
+    });
+
+  const advocatesInserted = await db
+    .insert(advocates)
+    .values(advocateDataSeed)
+    .returning({
+      id: advocates.id,
+    });
+
+  for (const advocate of advocatesInserted) {
+    const randomSpecialties = getRandomSpecialties(specialitiesInserted);
+    const advocateSpecialties = randomSpecialties.map((specialty) => ({
+      advocatesId: advocate.id,
+      specialtyId: specialty.id,
+    }));
+
+    await db
+      .insert(advocatesToSpecialities)
+      .values(advocateSpecialties)
+      .execute();
+  }
+
+  console.log('Seed data inserted');
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
