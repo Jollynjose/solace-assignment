@@ -1,20 +1,37 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import BaseRepository from './base';
-import { eq, sql, SQL } from 'drizzle-orm';
+import { asc, desc, eq, sql, SQL } from 'drizzle-orm';
 import { db } from '@/lib';
 import { advocates, advocatesToSpecialities, specialties } from '@/db/schema';
 import { TAdvocates, TAdvocatesWithSpecialities } from '@/types';
+import { IPagination } from '@/types/pagination';
+import withPagination from '@/helpers/withPagination';
+import { orderBuilder } from '@/helpers';
 
-class AdvocatesRepository extends BaseRepository<TAdvocates> {
+export class AdvocatesRepository extends BaseRepository<TAdvocates> {
   constructor(db: NodePgDatabase) {
     super(db);
   }
 
-  async findAll(where?: SQL): Promise<TAdvocates[]> {
+  async findAll(
+    pagination?: IPagination<TAdvocates>,
+    where?: SQL,
+  ): Promise<TAdvocates[]> {
     try {
-      const query = this.db.select().from(advocates).$dynamic();
+      let query = this.db.select().from(advocates).$dynamic();
       if (where) {
-        query.where(where);
+        query = query.where(where);
+      }
+
+      if (pagination) {
+        const order = orderBuilder(pagination.order.type);
+
+        query = withPagination(
+          query,
+          order(advocates[pagination.order.field]),
+          pagination.offset,
+          pagination.limit,
+        );
       }
 
       return query;
@@ -24,10 +41,11 @@ class AdvocatesRepository extends BaseRepository<TAdvocates> {
   }
 
   async findAllWithSpecialities(
+    pagination?: IPagination<TAdvocates>,
     where?: SQL,
   ): Promise<TAdvocatesWithSpecialities[]> {
     try {
-      const query = this.db
+      let query = this.db
         .select({
           id: advocates.id,
           firstName: advocates.firstName,
@@ -48,10 +66,22 @@ class AdvocatesRepository extends BaseRepository<TAdvocates> {
           specialties,
           eq(advocatesToSpecialities.specialtyId, specialties.id),
         )
+        .groupBy(advocates.id)
         .$dynamic();
 
       if (where) {
         query.where(where);
+      }
+
+      if (pagination) {
+        const order = orderBuilder(pagination.order.type);
+
+        query = withPagination(
+          query,
+          order(advocates[pagination.order.field]),
+          pagination.offset,
+          pagination.limit,
+        );
       }
 
       return (await query) as unknown as TAdvocatesWithSpecialities[];

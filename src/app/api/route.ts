@@ -4,9 +4,6 @@ type ResponseData = {
   message: string;
 };
 
-export default function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ResponseData>,
-) {
+export function GET(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
   return res.status(405).json({ message: 'Not implemented' });
 }
