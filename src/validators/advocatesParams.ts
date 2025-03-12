@@ -1,4 +1,4 @@
-import { union, z } from 'zod';
+import { z } from 'zod';
 import { paginationValidator } from './pagination';
 
 const advocatesValues = [
