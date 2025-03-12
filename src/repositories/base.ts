@@ -1,3 +1,4 @@
+import { IPagination } from '@/types/pagination';
 import { SQL } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
@@ -8,7 +9,7 @@ abstract class BaseRepository<T> {
     this.db = db;
   }
 
-  findAll(where?: SQL): Promise<T[]> {
+  findAll(pagination?: IPagination<T>, where?: SQL): Promise<T[]> {
     throw new Error('Method not implemented.');
   }
 
