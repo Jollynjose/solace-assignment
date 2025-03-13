@@ -35,15 +35,15 @@ export async function GET(request: NextRequest) {
       },
     } as IPagination<TAdvocates>;
 
-    const advocatesWithSpecialities =
-      await advocatesService.getAdvocatesWithSpecialities(
-        pagination,
-        search as string,
-      );
+    const { data, total } = await advocatesService.getAdvocatesWithSpecialities(
+      pagination,
+      search as string,
+    );
 
     return new Response(
       JSON.stringify({
-        data: advocatesWithSpecialities,
+        total,
+        data,
       }),
       {
         status: 200,
