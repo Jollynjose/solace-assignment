@@ -1,92 +1,55 @@
 'use client';
-
-import { Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
+import AdvocatesTable from '@/components/AdvocatesTable';
+import { SearchInput } from '@/components';
+import { Box, Typography } from '@mui/material';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 export default function Home() {
-  const [advocates, setAdvocates] = useState([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState([]);
+  const searchParams = useSearchParams();
 
-  useEffect(() => {
-    console.log('fetching advocates...');
-    fetch('/api/advocates').then((response) => {
-      response.json().then((jsonResponse) => {
-        setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
-      });
-    });
-  }, []);
-
-  const onChange = (e) => {
-    const searchTerm = e.target.value;
-
-    document.getElementById('search-term').innerHTML = searchTerm;
-
-    console.log('filtering advocates...');
-    const filteredAdvocates = advocates.filter((advocate) => {
-      return (
-        advocate.firstName.includes(searchTerm) ||
-        advocate.lastName.includes(searchTerm) ||
-        advocate.city.includes(searchTerm) ||
-        advocate.degree.includes(searchTerm) ||
-        advocate.specialties.includes(searchTerm) ||
-        advocate.yearsOfExperience.includes(searchTerm)
-      );
-    });
-
-    setFilteredAdvocates(filteredAdvocates);
+  const params = {
+    search: searchParams.get('search'),
+    offset: searchParams.get('offset'),
   };
 
-  const onClick = () => {
-    console.log(advocates);
-    setFilteredAdvocates(advocates);
-  };
+  const offset = !Number.isNaN(params?.offset) ? Number(params?.offset) : 0;
+
+  const search = params?.search ?? undefined;
 
   return (
-    <main style={{ margin: '24px' }}>
-      <Typography variant="h1">Solace Advocates</Typography>
-      <br />
-      <br />
-      <div>
-        <p>Search</p>
-        <p>
-          Searching for: <span id="search-term"></span>
-        </p>
-        <input style={{ border: '1px solid black' }} onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
-      </div>
-      <br />
-      <br />
-      <table>
-        <thead>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>City</th>
-          <th>Degree</th>
-          <th>Specialties</th>
-          <th>Years of Experience</th>
-          <th>Phone Number</th>
-        </thead>
-        <tbody>
-          {filteredAdvocates.map((advocate) => {
-            return (
-              <tr>
-                <td>{advocate.firstName}</td>
-                <td>{advocate.lastName}</td>
-                <td>{advocate.city}</td>
-                <td>{advocate.degree}</td>
-                <td>
-                  {advocate.specialties.map((s) => (
-                    <div>{s}</div>
-                  ))}
-                </td>
-                <td>{advocate.yearsOfExperience}</td>
-                <td>{advocate.phoneNumber}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </main>
+    <Box
+      component="main"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '.525rem',
+        padding: '1.5rem',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          flexDirection: { xs: 'column', sm: 'row' },
+        }}
+      >
+        <Typography variant="h1">Solace Advocates</Typography>
+
+        <SearchInput debounceTime={500} />
+      </Box>
+
+      <Suspense key={`${search}-${offset}`}>
+        <AdvocatesTable
+          params={{
+            search: search,
+            offset,
+            limit: 10,
+            orderBy: 'id',
+            orderType: 'ASC',
+          }}
+        />
+      </Suspense>
+    </Box>
   );
 }

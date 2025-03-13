@@ -6,3 +6,8 @@ export type TAdvocates = typeof advocates.$inferSelect;
 export type TAdvocatesWithSpecialities = TAdvocates & {
   specialities: TSpecialities[];
 };
+
+export type TAdvocatesResponse = {
+  data: TAdvocatesWithSpecialities[];
+  total: number;
+};

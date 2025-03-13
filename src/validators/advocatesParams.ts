@@ -19,3 +19,5 @@ export const advocatesParamsValidator = z.object({
       .refine((value) => advocatesValues.includes(value)),
   }).shape,
 });
+
+export type TAdvocatesParams = z.infer<typeof advocatesParamsValidator>;

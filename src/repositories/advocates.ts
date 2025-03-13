@@ -55,7 +55,7 @@ export class AdvocatesRepository extends BaseRepository<TAdvocates> {
           yearsOfExperience: advocates.yearsOfExperience,
           phoneNumber: advocates.phoneNumber,
           createdAt: advocates.createdAt,
-          specialties: sql`COALESCE(json_agg(json_build_object('id', ${specialties.id}, 'name', ${specialties.name})), '[]')`,
+          specialities: sql`COALESCE(json_agg(json_build_object('id', ${specialties.id}, 'name', ${specialties.name})), '[]')`,
         })
         .from(advocates)
         .leftJoin(
@@ -84,7 +84,38 @@ export class AdvocatesRepository extends BaseRepository<TAdvocates> {
         );
       }
 
+      const count = this.db
+        .select({
+          count: sql`COUNT(*)`,
+        })
+        .from(advocates)
+        .$dynamic();
+
+      if (where) {
+        count.where(where);
+      }
+
       return (await query) as unknown as TAdvocatesWithSpecialities[];
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async getCount(where?: SQL): Promise<number> {
+    try {
+      let query = this.db
+        .select({
+          count: sql`COALESCE(COUNT(*), 0)`,
+        })
+        .from(advocates)
+        .$dynamic();
+      if (where) {
+        query = query.where(where);
+      }
+
+      const result = await query;
+
+      return result[0].count as number;
     } catch (e) {
       throw e;
     }
