@@ -11,10 +11,10 @@ The technical test was supposed to take **2 hours**, but I ended up spending **6
   - Noticed that the `specialities` field contained **repetitive data**, causing a **massive array** that negatively impacted performance.
   - **Refactored and normalized** the tables—now, `advocates` have a **many-to-many relationship** with `specialities`.
   - Added **indexes** to optimize search times and improve performance.
+- Removed **Tailwind CSS** and add **MaterialUI** to speed up frontend improvements.
+- Set up **Next.js** and standardized some styles.
 - Enhanced the `advocates` endpoint:
   - Implemented **query parameters** and **pagination** to limit request sizes.
-  - Removed **Tailwind CSS** and add **MaterialUI** to speed up frontend improvements.
-  - Set up **Next.js** and standardized some styles.
 
 ### Additional Improvements
 
