@@ -35,3 +35,4 @@ The technical test was supposed to take **2 hours**, but I ended up spending **6
 - **Enhanced table UX**, including sorting functionality.
 - **Accessibility (A11y) improvements** where needed.
 - **Next.js caching mechanisms** to improve application load times.
+- **Integrate a fake data generation technique** (e.g., Faker.js) to create mock data for unit testing.
